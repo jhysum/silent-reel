@@ -67,12 +67,14 @@ body{color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;
 @keyframes egg-glow{0%{filter:none;transform:scale(1)}30%{filter:brightness(1.25) drop-shadow(0 0 26px rgba(224,178,122,.55));transform:scale(1.035)}60%{filter:brightness(1.15) drop-shadow(0 0 34px rgba(224,178,122,.4));transform:scale(1.02)}100%{filter:none;transform:scale(1)}}
 @keyframes egg-punch{0%{transform:scale(1) rotate(0);filter:none}12%{transform:scale(1.09) rotate(-1.4deg);filter:brightness(1.45) contrast(1.18) drop-shadow(0 0 30px rgba(41,184,169,.5))}30%{transform:scale(.96) rotate(1.1deg);filter:brightness(.82)}48%{transform:scale(1.035) rotate(-.5deg);filter:brightness(1.18) drop-shadow(0 0 22px rgba(228,109,143,.4))}70%{transform:scale(.99) rotate(.3deg);filter:brightness(1.04)}100%{transform:scale(1) rotate(0);filter:none}}
 @keyframes egg-glitch{0%{transform:translate(0);filter:none}12%{transform:translate(-7px,2px) skewX(-3deg);filter:hue-rotate(35deg) saturate(1.7) brightness(1.2)}24%{transform:translate(6px,-2px) skewX(3deg);filter:hue-rotate(-45deg) saturate(1.6) contrast(1.2)}38%{transform:translate(-5px,1px);filter:brightness(1.3) contrast(1.35)}52%{transform:translate(4px,-1px) skewX(-2deg);filter:hue-rotate(25deg) saturate(1.4)}68%{transform:translate(-3px,0);filter:brightness(1.08)}84%{transform:translate(2px,0) skewX(1deg);filter:none}100%{transform:translate(0);filter:none}}
+@keyframes egg-scurry{0%{transform:translate(0,0) scale(1) rotate(0)}9%{transform:translate(-33vw,13vh) scale(.045) rotate(-12deg)}20%{transform:translate(31vw,-15vh) scale(.045) rotate(16deg)}31%{transform:translate(-27vw,-19vh) scale(.045) rotate(-9deg)}43%{transform:translate(29vw,17vh) scale(.045) rotate(13deg)}55%{transform:translate(-31vw,4vh) scale(.045) rotate(-15deg)}67%{transform:translate(22vw,-11vh) scale(.045) rotate(10deg)}79%{transform:translate(-13vw,9vh) scale(.045) rotate(-7deg)}90%{transform:translate(6vw,-3vh) scale(.05) rotate(4deg)}100%{transform:translate(0,0) scale(1) rotate(0)}}
 .egg-flip{animation:egg-flip 1.5s ease-in-out}
 .egg-shrink{animation:egg-shrink 1.7s ease-in-out}
 .egg-color{animation:egg-color 3s ease-in-out}
 .egg-glow{animation:egg-glow 2.2s ease-in-out}
 .egg-punch{animation:egg-punch 1.15s cubic-bezier(.2,.85,.2,1)}
 .egg-glitch{animation:egg-glitch .85s steps(1,end)}
+.egg-scurry{animation:egg-scurry 3.4s ease-in-out}
 .portrait img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.96) contrast(1.02)}
 .kicker{
   font-family:var(--disp); text-transform:uppercase; letter-spacing:.34em;
@@ -766,6 +768,7 @@ var CODES=[
   {k:"flip",     f:function(){ toast("🚗 We flipped the principal's car. Worth it. Do little crimes — bring your friends."); eggFx("egg-flip",1500); }},
   {k:"bella",    f:function(){ toast("Poor Things — all the colors at once. She says they're her. 🎨"); eggFx("egg-color",3000); }},
   {k:"poor",     f:function(){ toast("Poor Things — all the colors at once. She says they're her. 🎨"); eggFx("egg-color",3000); }},
+  {k:"aant",     f:function(){ toast("🐜 …and there he goes, off to the picnic. Small, quick, completely unbothered. (Ant-Man, extended cut.)"); eggFx("egg-scurry",3400); }},
   {k:"ant",      f:function(){ toast("🐜 Small enough to slip in, never small enough to miss. Unnoticed, not invisible."); eggFx("egg-shrink",1700); }},
   {k:"future",   f:function(){ toast("Your future hasn't been written yet — so make it a good one. (You already are.) ⚡"); }},
   {k:"chef",     f:function(){ toast("🥪 El Jefe, order up. Somebody here is dangerously passionate — that's the sexy part."); }},
@@ -860,6 +863,7 @@ var CODEBOOK=[
   ["happyend","flips the car 🚗"],
   ["bella","Poor Things 🎨"],
   ["ant","shrinks to a speck 🐜"],
+  ["aant","the extended chase 🐜🐜"],
   ["88","the DeLorean ⚡"],
   ["future","your favorite line"],
   ["chef","order up 🥪"],
