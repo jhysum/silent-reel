@@ -9,6 +9,7 @@
 </head>
 <body>
 <title>A Silent Film for Aimsé</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 /* ============================================================
    A SILENT FILM FOR AIMSÉ  — self-contained, self-paced deck
@@ -52,7 +53,7 @@ body{color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;
   border:1.5px solid rgba(245,230,203,.5);
   outline:1px solid rgba(245,230,203,.26); outline-offset:6px;
   border-radius:2px;
-  overflow:hidden;
+  max-height:100%; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
 }
 .art{width:100%; display:flex; justify-content:center}
 .art svg{width:clamp(112px,38vw,180px); height:auto; display:block; overflow:visible}
@@ -69,7 +70,7 @@ body{color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;
 .portrait img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.96) contrast(1.02)}
 .kicker{
   font-family:var(--disp); text-transform:uppercase; letter-spacing:.34em;
-  font-size:clamp(10px,3vw,12.5px); color:var(--teal); margin:0; padding-left:.34em;
+  font-size:clamp(10px,3vw,12.5px); color:var(--teal); margin:0; padding-left:.34em; text-wrap:balance;
 }
 .divider{display:flex; align-items:center; justify-content:center; gap:12px; width:60%; color:var(--fg-dim)}
 .divider::before,.divider::after{content:""; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--fg-dim),transparent)}
@@ -153,15 +154,12 @@ h1.head .ln{display:block}
 #backBtn.on{display:inline-flex}
 
 /* code box (see + type the secret words) */
-.codebar{position:fixed; left:calc(env(safe-area-inset-left) + 12px); top:calc(var(--bar) + env(safe-area-inset-top) + 10px);
-  z-index:50; display:none; align-items:center; gap:2px; background:rgba(37,24,41,.5);
-  border:1px solid rgba(245,230,203,.22); border-radius:7px; padding:2px 3px 2px 9px}
-.codebar.on{display:inline-flex}
-.codebox{width:92px; background:transparent; border:0; color:var(--fg); font-family:var(--mono); font-size:12px; letter-spacing:.08em; padding:7px 0; outline:none}
-.codebox::placeholder{color:var(--fg-dim); opacity:.6; text-transform:lowercase; letter-spacing:.05em}
-.codeclear{min-width:26px; height:26px; border:0; border-radius:5px; background:transparent; color:var(--fg-dim);
-  font-size:17px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
-.codeclear:hover,.codeclear:focus-visible{color:var(--fg); background:rgba(245,230,203,.1)}
+/* the code input lives inside the Codebook (below). font-size:16px stops iOS from zooming on focus. */
+.cb-input{display:block; width:100%; max-width:260px; margin:0 auto 16px; text-align:center;
+  background:rgba(14,8,18,.5); border:1px solid rgba(41,184,169,.4); border-radius:6px;
+  color:var(--fg); font-family:var(--mono); font-size:16px; letter-spacing:.06em; padding:9px 10px; outline:none}
+.cb-input:focus{border-color:var(--teal)}
+.cb-input::placeholder{color:var(--fg-dim); opacity:.55; text-transform:lowercase}
 
 /* codebook overlay — revealed by tapping the music button 5× */
 .codebook{position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center; padding:24px;
@@ -187,8 +185,6 @@ h1.head .ln{display:block}
   #backBtn{min-width:40px; min-height:40px; font-size:20px; background:rgba(23,16,27,.82)}
   #replayBtn{padding:8px 15px; font-size:11px; letter-spacing:.15em; min-height:40px;
     background:rgba(23,16,27,.9); bottom:calc(var(--bar) + env(safe-area-inset-bottom) + 10px)}
-  .codebar{background:rgba(23,16,27,.82)}
-  .codebox{width:88px}
 }
 
 /* gate */
@@ -252,15 +248,12 @@ h1.head .ln{display:block}
   <p id="toast" class="toast" aria-hidden="true"></p>
   <button id="replayBtn" class="btn" type="button">↺ One more take</button>
   <button id="backBtn" class="btn" type="button" aria-label="Go back one card">‹</button>
-  <div id="codebar" class="codebar">
-    <input id="codebox" class="codebox" type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="16" placeholder="film title…" aria-label="Type a secret film code">
-    <button id="codeclear" class="codeclear" type="button" aria-label="Clear the code box">×</button>
-  </div>
   <div id="codebook" class="codebook" role="dialog" aria-modal="true" aria-label="The codebook" aria-hidden="true">
     <div class="codebook-panel">
       <button id="cbClose" class="cb-close" type="button" aria-label="Close">×</button>
       <h3>The Codebook</h3>
-      <p class="cb-sub">type these anywhere</p>
+      <p class="cb-sub">type one in the box</p>
+      <input id="cbInput" class="cb-input" type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="16" placeholder="e.g. happyend" aria-label="Type a secret film code">
       <ul id="cbList"></ul>
       <p class="cb-foot">…and tap her photo, or the Pepsu logo. 🐾</p>
     </div>
@@ -272,7 +265,7 @@ h1.head .ln{display:block}
     <h1 class="g-title">For Aimsé,</h1>
     <p class="g-sub">a little silent film, on the occasion of your graduation</p>
     <button id="beginBtn" class="btn" type="button"><span class="arrow">▷</span>Roll the film</button>
-    <p class="g-foot">tap through it at your own pace · best with sound</p>
+    <p class="g-foot">tap through at your own pace<br>best with sound</p>
   </div>
 </main>
 
@@ -310,7 +303,7 @@ var CONFIG = {
 
     { kind:"about", art:"camera",
       kicker:"Directed by", head:["AIMSÉ"],
-      whisper:"Some nights she signs it East Anderson instead. Full auteur mode. We support it." },
+      whisper:"Some nights she signs it East Anderson instead — and everything goes suddenly, suspiciously symmetrical. We support it." },
 
     { kind:"about", art:"cat",
       kicker:"Executive Producer", head:["PEPSI"],
@@ -319,11 +312,11 @@ var CONFIG = {
     { kind:"about", art:"filmfan",
       kicker:"The Nominees",
       sub:"Every filmmaker is really just a pile of the movies that got to her first. Exhibit A through several:",
-      whisper:"(Also on the ballot: Chef, Carnage, Ant-Man, Back to the Future, and the unhinged color of Poor Things — which she'd shoot for A24 tomorrow, budget permitting.)" },
+      whisper:"(Also on the ballot: Chef, Carnage, Ant-Man, Back to the Future, and the unhinged color of Poor Things — which she'd shoot for A24 tomorrow, in a heartbeat.)" },
 
     { kind:"film", art:"happyend",
       kicker:"Nominee", head:["Happyend"],
-      whisper:"Her number one. She will make you watch it. You will be quietly wrecked. You will, somehow, thank her." },
+      whisper:"Her number one, no contest — a pack of teenagers, one flipped headmaster's car, zero regrets. Doing gloriously dumb, borderline-criminal things with your friends is basically her love language. She will make you watch it. You'll text the group chat the second it ends." },
 
     { kind:"film", art:"monolith",
       kicker:"Nominee", head:["2001: A Space Odyssey"],
@@ -331,11 +324,11 @@ var CONFIG = {
 
     { kind:"film", art:"candle",
       kicker:"Nominee", head:["Insiang"],
-      whisper:"The serious pick on the ballot. Lino Brocka, National Artist, zero notes. Get her started on him and cancel your evening — she's right about all of it." },
+      whisper:"The one she means it about. Lino Brocka — the National Artist she looks up to — and a young woman who refuses to stay powerless. The first Filipino film ever at Cannes. Get her started on him and cancel your evening; she's right about all of it." },
 
     { kind:"film", art:"aloe",
       kicker:"Nominee", head:["Léon: The Professional"],
-      whisper:"A hitman, a houseplant, and a girl with a famously complicated file on father figures. Every cinephile keeps one entry in the daddy-issues canon. This is hers. (The plant makes it. Naturally.)" },
+      whisper:"A hitman, a houseplant, and a girl with a famously complicated file on father figures. The aura, she'll tell you, is unmatched — and every cinephile keeps one entry in the daddy-issues canon. This is hers. (The plant helps. Naturally.)" },
 
     { kind:"film", art:"bike",
       kicker:"Nominee", head:["Dìdi"],
@@ -347,7 +340,7 @@ var CONFIG = {
 
     { kind:"about", art:"desk",
       kicker:"Coming soon", head:["The Movies She's", "Going to Make"],
-      whisper:"Women who are sick and funny and fall in love anyway. Shot from a tiny bedroom, a cat for a crew, a heart way bigger than the budget she doesn't have yet. Give it a few years. Keep your ticket stub." },
+      whisper:"Women who are sick and funny and right in the middle of their own love stories. Shot from a tiny bedroom, a cat for a crew, a heart way bigger than the budget she doesn't have yet. Give it a few years. Keep your ticket stub." },
 
     { kind:"award", art:"portrait",
       kicker:"And the award for Best Graduate goes to",
@@ -510,8 +503,8 @@ var $=function(s){return document.querySelector(s);};
 var stage=$("#stage"), layerA=$("#layerA"), layerB=$("#layerB"),
     gate=$("#gate"), beginBtn=$("#beginBtn"), muteBtn=$("#muteBtn"),
     progress=$("#progress"), hint=$("#hint"), replayBtn=$("#replayBtn"), fx=$("#fx"), music=$("#music"),
-    codebar=$("#codebar"), codeInput=$("#codebox"), codeClear=$("#codeclear"), backBtn=$("#backBtn"),
-    codebook=$("#codebook"), cbList=$("#cbList");
+    backBtn=$("#backBtn"), codebook=$("#codebook"), cbList=$("#cbList"),
+    cbInput=$("#cbInput"), cbClose=$("#cbClose");
 
 var mmReduce=window.matchMedia("(prefers-reduced-motion: reduce)");
 var Deck={ i:-1, started:false, animating:false, reduced:mmReduce.matches };
@@ -644,9 +637,9 @@ function begin(){
   if(Deck.started) return;
   Deck.started=true; Deck.i=0;
   gate.hidden=true; gate.style.display="none";
-  muteBtn.style.display="inline-flex"; if(isTouch) codebar.classList.add("on");
+  muteBtn.style.display="inline-flex";
   if(music && music.getAttribute("src") && music.getAttribute("src").indexOf("data:")===0){
-    music.volume=0.7; music.muted=muted;
+    music.volume=0.55; music.muted=muted;
     var mp=music.play(); if(mp && mp.catch) mp.catch(function(){});
   } else {
     initAudio();
@@ -657,10 +650,10 @@ beginBtn.addEventListener("click", function(e){ e.stopPropagation(); begin(); })
 
 /* ---- input: pointer + click (double-fire guarded) ---- */
 var swallowUntil=0;
-// touch devices (no hover) keep the code box visible — it's their only keyboard trigger;
-// pointer devices reveal it once the user starts typing.
-var isTouch = !!(window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches);
-function interactive(t){ return t.closest && t.closest("button, a, input, .codebar, .codebook, .gate, .portrait, .logo-placard"); }
+// track pointer-down position to tell a tap from a scroll/drag on tall cards
+var pStartX=0, pStartY=0;
+function interactive(t){ return t.closest && t.closest("button, a, .codebook, .gate, .portrait, .logo-placard"); }
+stage.addEventListener("pointerdown", function(e){ pStartX=e.clientX; pStartY=e.clientY; }, {passive:true});
 stage.addEventListener("pointerup", function(e){
   if(e.pointerType==="mouse" && e.button!==0) return;
   var egg=e.target.closest && e.target.closest(".portrait, .logo-placard");
@@ -672,6 +665,7 @@ stage.addEventListener("pointerup", function(e){
   }
   if(interactive(e.target)) return;
   swallowUntil=(window.performance?performance.now():Date.now())+500;
+  if(Math.abs(e.clientX-pStartX)>12 || Math.abs(e.clientY-pStartY)>12) return; // a scroll/drag, not a tap
   if(Deck.started) next();
 }, {passive:true});
 stage.addEventListener("click", function(e){
@@ -682,44 +676,37 @@ stage.addEventListener("click", function(e){
 });
 window.addEventListener("keydown", function(e){
   if(codebook && codebook.classList.contains("on")){ if(e.key==="Escape") hideCodebook(); return; }
-  var typing = document.activeElement===codeInput;
+  if(document.activeElement===cbInput) return;    // the Codebook's own input handles typing
   if(!Deck.started){
-    if(!typing && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); begin(); }
+    if(e.key==="Enter"||e.key===" "){ e.preventDefault(); begin(); }
     return;
   }
-  if(typing) return;                 // the code box handles its own typing + matching
   switch(e.key){
     case "ArrowRight": case " ": case "Enter": e.preventDefault(); next(); break;
     case "ArrowLeft": case "Backspace": e.preventDefault(); prev(); break;
   }
-  // mirror typed letters into the code box (revealing it on the first letter), then match
+  // type a film title anywhere (no visible box) to fire its easter egg
   if(e.key && e.key.length===1 && /[a-z0-9]/i.test(e.key)){
-    codebar.classList.add("on");
-    codeInput.value=(codeInput.value+e.key).slice(-16);
-    feedCode();
+    gBuf=(gBuf+e.key).slice(-16);
+    if(matchCode(gBuf)) gBuf="";
   }
 });
 replayBtn.addEventListener("click", function(e){ e.stopPropagation(); replay(); });
 backBtn.addEventListener("click", function(e){ e.stopPropagation(); prev(); });
-codeInput.addEventListener("input", function(){ codeInput.value=codeInput.value.slice(-16); feedCode(); });
-codeInput.addEventListener("keydown", function(e){ e.stopPropagation(); if(e.key==="Enter") e.preventDefault(); });
-codeClear.addEventListener("click", function(e){ e.stopPropagation(); codeInput.value=""; try{ codeInput.focus(); }catch(_){} });
+cbInput.addEventListener("input", function(){ cbInput.value=cbInput.value.slice(-16); if(matchCode(cbInput.value.toLowerCase())){ cbInput.value=""; hideCodebook(); } });
+cbInput.addEventListener("keydown", function(e){ if(e.key==="Enter") e.preventDefault(); });
 function updateNav(){ if(!backBtn) return; if(Deck.started && Deck.i>0) backBtn.classList.add("on"); else backBtn.classList.remove("on"); }
-var codeClearT=0;
-function feedCode(){
-  var buf=(codeInput.value||"").toLowerCase();
+var gBuf="";
+function matchCode(buf){
+  buf=(buf||"").toLowerCase();
   for(var i=0;i<CODES.length;i++){
-    if(buf.length>=CODES[i].k.length && buf.slice(-CODES[i].k.length)===CODES[i].k){
-      CODES[i].f();
-      clearTimeout(codeClearT);
-      codeClearT=setTimeout(function(){ codeInput.value=""; }, 1400);
-      return;
-    }
+    if(buf.length>=CODES[i].k.length && buf.slice(-CODES[i].k.length)===CODES[i].k){ CODES[i].f(); return true; }
   }
+  return false;
 }
 
 /* ---- easter eggs (hidden fun for a film nerd) ---- */
-var toastEl=$("#toast"), toastTimer=0, keyBuf="", idleTimer=0;
+var toastEl=$("#toast"), toastTimer=0, idleTimer=0;
 function toast(msg){
   if(!toastEl) return;
   toastEl.textContent=msg; toastEl.classList.add("on");
@@ -743,13 +730,13 @@ var CODES=[
   {k:"88",       f:function(){ toast("Roads? Where we're going, we don't need roads."); fireConfetti(); }},
   {k:"happyend", f:function(){ toast("🚗 We flipped the principal's car. Worth it. Do little crimes — bring your friends."); eggFx("egg-flip",1500); }},
   {k:"flip",     f:function(){ toast("🚗 We flipped the principal's car. Worth it. Do little crimes — bring your friends."); eggFx("egg-flip",1500); }},
-  {k:"bella",    f:function(){ toast("Bella would call this: furious color. 🎨"); eggFx("egg-color",3000); }},
-  {k:"poor",     f:function(){ toast("Bella would call this: furious color. 🎨"); eggFx("egg-color",3000); }},
+  {k:"bella",    f:function(){ toast("Poor Things — all the colors at once. She says they're her. 🎨"); eggFx("egg-color",3000); }},
+  {k:"poor",     f:function(){ toast("Poor Things — all the colors at once. She says they're her. 🎨"); eggFx("egg-color",3000); }},
   {k:"ant",      f:function(){ toast("🐜 Small enough to slip in, never small enough to miss. Unnoticed, not invisible."); eggFx("egg-shrink",1700); }},
   {k:"future",   f:function(){ toast("Your future hasn't been written yet — so make it a good one. (You already are.) ⚡"); }},
   {k:"chef",     f:function(){ toast("🥪 El Jefe, order up. Somebody here is dangerously passionate — that's the sexy part."); }},
   {k:"leon",     f:function(){ toast("🪴 The plant is the most stable dad in the whole movie. Water it. (Again: daddy issues.)"); }},
-  {k:"hamster",  f:function(){ toast("🐹 The hamster made it out alive. Four adults, one room, zero survivors."); }},
+  {k:"hamster",  f:function(){ toast("🐹 Carnage — four adults, one room, words sharp enough to draw blood. The hamster's the only survivor."); }},
   {k:"insiang",  f:function(){ toast("🇵🇭 Insiang, 1976 — first Filipino film at Cannes. Brocka opened the door; you walk through it. →"); }},
   {k:"didi",     f:function(){ toast("🟢 away message: “brb, becoming a director.”"); }},
   {k:"east",     f:function(){ toast("🎞️ Directed by East Anderson. Perfectly centered. Pride of the East."); }},
@@ -758,18 +745,11 @@ var CODES=[
   {k:"pepsuuuii",f:function(){ toast("🐈 Pepsuuuii reporting for duty. Unconditional love, exec-produced."); }},
   {k:"pepsi",    f:function(){ toast("🐾 Pepsi approves this production."); }},
   // — the originals —
-  {k:"hal",      f:function(){ toast("I'm sorry, Aimsé. I'm afraid you'll have to tap it yourself."); }},
+  {k:"hal",      f:function(){ toast("I'm sorry, Aimsé. I'm afraid I can't do that. (You'll have to tap it yourself.)"); }},
   {k:"a24",      f:function(){ toast("A24 called. They're holding a seat for your reel."); }},
   {k:"cut",      f:function(){ toast("That's a wrap. Print it."); }}
 ];
-function feedKey(key){
-  if(key && key.length===1 && /[a-z0-9]/i.test(key)){
-    keyBuf=(keyBuf+key.toLowerCase()).slice(-12);
-    for(var i=0;i<CODES.length;i++){
-      if(keyBuf.slice(-CODES[i].k.length)===CODES[i].k){ keyBuf=""; CODES[i].f(); return; }
-    }
-  }
-}
+/* (typed-code matching is handled by matchCode above) */
 function scheduleIdle(i){
   clearTimeout(idleTimer);
   if(isFin(i)) return;
@@ -827,31 +807,26 @@ function toggleMute(){
   if(music) music.muted=muted;
   if(master&&audioCtx) master.gain.setTargetAtTime(muted?0:CONFIG.audio.volume,audioCtx.currentTime,0.05);
 }
-var muteClicks=0, muteClickT=0, muteSeqStart=false;
+var muteCount=0, muteSeqT=0, mutePendT=0;
 muteBtn.addEventListener("click", function(e){
   e.stopPropagation();
-  if(muteClicks===0) muteSeqStart=muted;
-  muteClicks++;
-  clearTimeout(muteClickT);
-  muteClickT=setTimeout(function(){ muteClicks=0; }, 1600);
-  if(muteClicks>=5){
-    muteClicks=0; clearTimeout(muteClickT);
-    if(muted!==muteSeqStart) toggleMute();   // leave the music as it was before the 5 taps
-    showCodebook();
-    return;
-  }
-  toggleMute();
+  muteCount++;
+  clearTimeout(muteSeqT); muteSeqT=setTimeout(function(){ muteCount=0; }, 1600);
+  clearTimeout(mutePendT);
+  if(muteCount>=5){ muteCount=0; clearTimeout(muteSeqT); showCodebook(); return; }
+  // debounce the actual toggle so a rapid 5-tap (opening the codebook) doesn't stutter the audio
+  mutePendT=setTimeout(function(){ toggleMute(); muteCount=0; }, 230);
 });
 /* ---- the codebook: every code, revealed by tapping ♪ five times ---- */
 var CODEBOOK=[
   ["happyend","flips the car 🚗"],
-  ["bella","furious color 🎨"],
+  ["bella","Poor Things 🎨"],
   ["ant","shrinks to a speck 🐜"],
   ["88","the DeLorean ⚡"],
   ["future","your favorite line"],
   ["chef","order up 🥪"],
   ["leon","the plant 🪴"],
-  ["hamster","lone survivor 🐹"],
+  ["hamster","Carnage 🐹"],
   ["insiang","a bow to Brocka 🇵🇭"],
   ["didi","brb, directing"],
   ["east","East Anderson 🎞️"],
@@ -866,9 +841,18 @@ function buildCodebook(){
   var h=""; for(var i=0;i<CODEBOOK.length;i++){ h+='<li><b>'+CODEBOOK[i][0]+'</b><span>'+CODEBOOK[i][1]+'</span></li>'; }
   if(cbList) cbList.innerHTML=h;
 }
-function showCodebook(){ if(!codebook) return; if(cbList && !cbList.innerHTML) buildCodebook(); codebook.classList.add("on"); codebook.setAttribute("aria-hidden","false"); }
-function hideCodebook(){ if(!codebook) return; codebook.classList.remove("on"); codebook.setAttribute("aria-hidden","true"); }
-if(codebook) codebook.addEventListener("click", function(e){ e.stopPropagation(); if(e.target===codebook || (e.target.closest && e.target.closest("#cbClose"))) hideCodebook(); });
+var cbLastFocus=null;
+function showCodebook(){ if(!codebook) return; if(cbList && !cbList.innerHTML) buildCodebook(); cbLastFocus=document.activeElement; codebook.classList.add("on"); codebook.setAttribute("aria-hidden","false"); try{ cbInput.focus(); }catch(_){} }
+function hideCodebook(){ if(!codebook) return; codebook.classList.remove("on"); codebook.setAttribute("aria-hidden","true"); if(cbInput) cbInput.value=""; try{ (cbLastFocus||muteBtn).focus(); }catch(_){} }
+if(codebook){
+  codebook.addEventListener("click", function(e){ e.stopPropagation(); if(e.target===codebook || (e.target.closest && e.target.closest("#cbClose"))) hideCodebook(); });
+  codebook.addEventListener("keydown", function(e){
+    if(e.key!=="Tab") return;
+    var f=[cbInput, cbClose].filter(Boolean), first=f[0], last=f[f.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  });
+}
 
 /* =====================================================================
    CONFETTI — canvas, palette, reduced-motion safe
