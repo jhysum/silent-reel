@@ -64,9 +64,11 @@ body{color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;
 @keyframes egg-flip{0%{transform:rotate(0)}50%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
 @keyframes egg-shrink{0%{transform:scale(1)}45%{transform:scale(.08) rotate(-3deg)}60%{transform:scale(.08) rotate(3deg)}100%{transform:scale(1)}}
 @keyframes egg-color{0%{filter:none}12%{filter:saturate(2.2) hue-rotate(40deg) brightness(1.08)}45%{filter:saturate(2.3) hue-rotate(170deg) brightness(1.1)}75%{filter:saturate(2.2) hue-rotate(290deg) brightness(1.08)}100%{filter:none}}
+@keyframes egg-glow{0%{filter:none;transform:scale(1)}30%{filter:brightness(1.25) drop-shadow(0 0 26px rgba(224,178,122,.55));transform:scale(1.035)}60%{filter:brightness(1.15) drop-shadow(0 0 34px rgba(224,178,122,.4));transform:scale(1.02)}100%{filter:none;transform:scale(1)}}
 .egg-flip{animation:egg-flip 1.5s ease-in-out}
 .egg-shrink{animation:egg-shrink 1.7s ease-in-out}
 .egg-color{animation:egg-color 3s ease-in-out}
+.egg-glow{animation:egg-glow 2.2s ease-in-out}
 .portrait img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.96) contrast(1.02)}
 .kicker{
   font-family:var(--disp); text-transform:uppercase; letter-spacing:.34em;
@@ -747,7 +749,11 @@ var CODES=[
   // — the originals —
   {k:"hal",      f:function(){ toast("I'm sorry, Aimsé. I'm afraid I can't do that. (You'll have to tap it yourself.)"); }},
   {k:"a24",      f:function(){ toast("A24 called. They're holding a seat for your reel."); }},
-  {k:"cut",      f:function(){ toast("That's a wrap. Print it."); }}
+  {k:"cut",      f:function(){ toast("That's a wrap. Print it."); }},
+  // — the people —
+  {k:"aimse",    f:function(){ toast("⭐ There she is — the whole reason for the reel. Best Graduate, no other nominees."); eggFx("egg-glow",2200); fireConfetti(); }},
+  {k:"jesse",    f:function(){ toast("🍿 Jesse — first in line at every screening, every single time. That's the whole job."); fireConfetti(); }},
+  {k:"jj",       f:function(){ toast("🎬 JJ, credited as: the guy who wouldn't stop believing in you. Non-speaking role, biggest fan."); }}
 ];
 /* (typed-code matching is handled by matchCode above) */
 function scheduleIdle(i){
@@ -835,7 +841,10 @@ var CODEBOOK=[
   ["pepsi","she approves 🐾"],
   ["hal","2001"],
   ["a24","a seat for your reel"],
-  ["cut","that's a wrap"]
+  ["cut","that's a wrap"],
+  ["aimse","the star ⭐"],
+  ["jesse","first in line 🍿"],
+  ["jj","the biggest fan 🎬"]
 ];
 function buildCodebook(){
   var h=""; for(var i=0;i<CODEBOOK.length;i++){ h+='<li><b>'+CODEBOOK[i][0]+'</b><span>'+CODEBOOK[i][1]+'</span></li>'; }
