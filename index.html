@@ -65,10 +65,12 @@ body{color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;
 @keyframes egg-shrink{0%{transform:scale(1)}45%{transform:scale(.08) rotate(-3deg)}60%{transform:scale(.08) rotate(3deg)}100%{transform:scale(1)}}
 @keyframes egg-color{0%{filter:none}12%{filter:saturate(2.2) hue-rotate(40deg) brightness(1.08)}45%{filter:saturate(2.3) hue-rotate(170deg) brightness(1.1)}75%{filter:saturate(2.2) hue-rotate(290deg) brightness(1.08)}100%{filter:none}}
 @keyframes egg-glow{0%{filter:none;transform:scale(1)}30%{filter:brightness(1.25) drop-shadow(0 0 26px rgba(224,178,122,.55));transform:scale(1.035)}60%{filter:brightness(1.15) drop-shadow(0 0 34px rgba(224,178,122,.4));transform:scale(1.02)}100%{filter:none;transform:scale(1)}}
+@keyframes egg-punch{0%{transform:scale(1) rotate(0);filter:none}12%{transform:scale(1.09) rotate(-1.4deg);filter:brightness(1.45) contrast(1.18) drop-shadow(0 0 30px rgba(41,184,169,.5))}30%{transform:scale(.96) rotate(1.1deg);filter:brightness(.82)}48%{transform:scale(1.035) rotate(-.5deg);filter:brightness(1.18) drop-shadow(0 0 22px rgba(228,109,143,.4))}70%{transform:scale(.99) rotate(.3deg);filter:brightness(1.04)}100%{transform:scale(1) rotate(0);filter:none}}
 .egg-flip{animation:egg-flip 1.5s ease-in-out}
 .egg-shrink{animation:egg-shrink 1.7s ease-in-out}
 .egg-color{animation:egg-color 3s ease-in-out}
 .egg-glow{animation:egg-glow 2.2s ease-in-out}
+.egg-punch{animation:egg-punch 1.15s cubic-bezier(.2,.85,.2,1)}
 .portrait img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.96) contrast(1.02)}
 .kicker{
   font-family:var(--disp); text-transform:uppercase; letter-spacing:.34em;
@@ -155,6 +157,19 @@ h1.head .ln{display:block}
   color:var(--fg-dim); font-size:22px; line-height:1; display:none; align-items:center; justify-content:center; background:rgba(37,24,41,.5)}
 #backBtn.on{display:inline-flex}
 
+/* desktop code box — shows the letters you type; phones use the Codebook instead */
+.codebox{position:fixed; right:calc(env(safe-area-inset-right) + 14px); bottom:calc(var(--bar) + env(safe-area-inset-bottom) + 14px);
+  z-index:52; display:none; align-items:center; gap:9px; padding:6px 7px 6px 12px;
+  font-family:var(--mono); font-size:12.5px; letter-spacing:.1em; color:var(--fg);
+  background:rgba(37,24,41,.86); border:1px solid rgba(41,184,169,.4); border-radius:4px}
+.codebox.on{display:inline-flex}
+.cbx-label{color:var(--teal); opacity:.75; text-transform:uppercase; font-size:9px; letter-spacing:.16em}
+.cbx-val{min-width:1ch; color:var(--fg); text-transform:lowercase}
+.cbx-val:empty::after{content:"\2026"; opacity:.4}
+.cbx-clear{font-family:var(--disp); color:var(--fg-dim); background:transparent; border:0; cursor:pointer;
+  font-size:17px; line-height:1; min-width:24px; min-height:24px; border-radius:50%}
+.cbx-clear:hover{color:var(--fg)}
+
 /* code box (see + type the secret words) */
 /* the code input lives inside the Codebook (below). font-size:16px stops iOS from zooming on focus. */
 .cb-input{display:block; width:100%; max-width:260px; margin:0 auto 16px; text-align:center;
@@ -187,6 +202,7 @@ h1.head .ln{display:block}
   #backBtn{min-width:40px; min-height:40px; font-size:20px; background:rgba(23,16,27,.82)}
   #replayBtn{padding:8px 15px; font-size:11px; letter-spacing:.15em; min-height:40px;
     background:rgba(23,16,27,.9); bottom:calc(var(--bar) + env(safe-area-inset-bottom) + 10px)}
+  .codebox{display:none !important}
 }
 
 /* gate */
@@ -250,6 +266,11 @@ h1.head .ln{display:block}
   <p id="toast" class="toast" aria-hidden="true"></p>
   <button id="replayBtn" class="btn" type="button">↺ One more take</button>
   <button id="backBtn" class="btn" type="button" aria-label="Go back one card">‹</button>
+  <div id="codebox" class="codebox" aria-hidden="true">
+    <span class="cbx-label">code</span>
+    <span id="codeboxVal" class="cbx-val"></span>
+    <button id="codeClear" class="cbx-clear" type="button" aria-label="Clear code">×</button>
+  </div>
   <div id="codebook" class="codebook" role="dialog" aria-modal="true" aria-label="The codebook" aria-hidden="true">
     <div class="codebook-panel">
       <button id="cbClose" class="cb-close" type="button" aria-label="Close">×</button>
@@ -506,7 +527,8 @@ var stage=$("#stage"), layerA=$("#layerA"), layerB=$("#layerB"),
     gate=$("#gate"), beginBtn=$("#beginBtn"), muteBtn=$("#muteBtn"),
     progress=$("#progress"), hint=$("#hint"), replayBtn=$("#replayBtn"), fx=$("#fx"), music=$("#music"),
     backBtn=$("#backBtn"), codebook=$("#codebook"), cbList=$("#cbList"),
-    cbInput=$("#cbInput"), cbClose=$("#cbClose");
+    cbInput=$("#cbInput"), cbClose=$("#cbClose"),
+    codebox=$("#codebox"), codeboxVal=$("#codeboxVal"), codeClear=$("#codeClear");
 
 var mmReduce=window.matchMedia("(prefers-reduced-motion: reduce)");
 var Deck={ i:-1, started:false, animating:false, reduced:mmReduce.matches };
@@ -654,7 +676,7 @@ beginBtn.addEventListener("click", function(e){ e.stopPropagation(); begin(); })
 var swallowUntil=0;
 // track pointer-down position to tell a tap from a scroll/drag on tall cards
 var pStartX=0, pStartY=0;
-function interactive(t){ return t.closest && t.closest("button, a, .codebook, .gate, .portrait, .logo-placard"); }
+function interactive(t){ return t.closest && t.closest("button, a, .codebook, .codebox, .gate, .portrait, .logo-placard"); }
 stage.addEventListener("pointerdown", function(e){ pStartX=e.clientX; pStartY=e.clientY; }, {passive:true});
 stage.addEventListener("pointerup", function(e){
   if(e.pointerType==="mouse" && e.button!==0) return;
@@ -687,16 +709,24 @@ window.addEventListener("keydown", function(e){
     case "ArrowRight": case " ": case "Enter": e.preventDefault(); next(); break;
     case "ArrowLeft": case "Backspace": e.preventDefault(); prev(); break;
   }
-  // type a film title anywhere (no visible box) to fire its easter egg
+  // type a film title anywhere to fire its easter egg; the desktop code box mirrors it
   if(e.key && e.key.length===1 && /[a-z0-9]/i.test(e.key)){
     gBuf=(gBuf+e.key).slice(-16);
     if(matchCode(gBuf)) gBuf="";
+    syncCodebox();
   }
 });
 replayBtn.addEventListener("click", function(e){ e.stopPropagation(); replay(); });
 backBtn.addEventListener("click", function(e){ e.stopPropagation(); prev(); });
 cbInput.addEventListener("input", function(){ cbInput.value=cbInput.value.slice(-16); if(matchCode(cbInput.value.toLowerCase())){ cbInput.value=""; hideCodebook(); } });
 cbInput.addEventListener("keydown", function(e){ if(e.key==="Enter") e.preventDefault(); });
+if(codeClear) codeClear.addEventListener("click", function(e){ e.stopPropagation(); gBuf=""; syncCodebox(); });
+// desktop-only readout: shows the letters typed into the invisible buffer, clears when a code fires
+function syncCodebox(){
+  if(!codebox) return;
+  if(codeboxVal) codeboxVal.textContent=gBuf;
+  if(gBuf) codebox.classList.add("on"); else codebox.classList.remove("on");
+}
 function updateNav(){ if(!backBtn) return; if(Deck.started && Deck.i>0) backBtn.classList.add("on"); else backBtn.classList.remove("on"); }
 var gBuf="";
 function matchCode(buf){
@@ -752,8 +782,8 @@ var CODES=[
   {k:"cut",      f:function(){ toast("That's a wrap. Print it."); }},
   // — the people —
   {k:"aimse",    f:function(){ toast("⭐ There she is — the whole reason for the reel. Best Graduate, no other nominees."); eggFx("egg-glow",2200); fireConfetti(); }},
-  {k:"jesse",    f:function(){ toast("🍿 Jesse — first in line at every screening, every single time. That's the whole job."); fireConfetti(); }},
-  {k:"jj",       f:function(){ toast("🎬 JJ, credited as: the guy who wouldn't stop believing in you. Non-speaking role, biggest fan."); }}
+  {k:"jesse",    f:function(){ toast("🎬 JJ — a.k.a. Jesse. First in line at every single screening, forever. Now go make your movies. 🍿"); eggFx("egg-punch",1150); fireConfetti(); }},
+  {k:"jj",       f:function(){ toast("🎬 JJ — a.k.a. Jesse. First in line at every single screening, forever. Now go make your movies. 🍿"); eggFx("egg-punch",1150); fireConfetti(); }}
 ];
 /* (typed-code matching is handled by matchCode above) */
 function scheduleIdle(i){
@@ -843,8 +873,8 @@ var CODEBOOK=[
   ["a24","a seat for your reel"],
   ["cut","that's a wrap"],
   ["aimse","the star ⭐"],
-  ["jesse","first in line 🍿"],
-  ["jj","the biggest fan 🎬"]
+  ["jj","from JJ, first in line 🎬"],
+  ["jesse","…also JJ 🍿"]
 ];
 function buildCodebook(){
   var h=""; for(var i=0;i<CODEBOOK.length;i++){ h+='<li><b>'+CODEBOOK[i][0]+'</b><span>'+CODEBOOK[i][1]+'</span></li>'; }
