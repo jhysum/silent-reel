@@ -163,6 +163,24 @@ h1.head .ln{display:block}
   font-size:17px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center}
 .codeclear:hover,.codeclear:focus-visible{color:var(--fg); background:rgba(245,230,203,.1)}
 
+/* codebook overlay — revealed by tapping the music button 5× */
+.codebook{position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center; padding:24px;
+  background:rgba(14,8,18,.85); opacity:0; transition:opacity .25s ease; pointer-events:none}
+.codebook.on{opacity:1; pointer-events:auto}
+.codebook-panel{position:relative; width:100%; max-width:460px; max-height:82vh; overflow:auto;
+  background:rgba(30,20,35,.97); border:1px solid rgba(245,230,203,.24); border-radius:9px;
+  padding:24px 22px 18px; box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.codebook h3{font-family:var(--disp); color:var(--fg); font-size:22px; margin:0 0 2px; text-align:center}
+.codebook .cb-sub{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--teal); text-align:center; margin:0 0 16px}
+.codebook ul{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:8px 18px}
+.codebook li{display:flex; align-items:baseline; gap:10px; font-family:var(--mono); font-size:12.5px; line-height:1.2}
+.codebook li b{color:var(--teal); font-weight:normal; letter-spacing:.05em; min-width:86px}
+.codebook li span{color:var(--fg-dim)}
+.codebook .cb-foot{font-family:var(--body); font-style:italic; color:var(--fg-dim); font-size:13px; text-align:center; margin:18px 0 2px}
+.cb-close{position:absolute; top:12px; right:12px; min-width:38px; min-height:38px; border:1px solid rgba(245,230,203,.26); border-radius:50%;
+  background:rgba(37,24,41,.6); color:var(--fg-dim); font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center}
+.cb-close:hover,.cb-close:focus-visible{color:var(--fg)}
+
 /* iPhone-size fit: shrink chrome so it stops crowding the card */
 @media (max-width:430px){
   #muteBtn{min-width:40px; min-height:40px; font-size:16px; background:rgba(23,16,27,.82)}
@@ -237,6 +255,15 @@ h1.head .ln{display:block}
   <div id="codebar" class="codebar">
     <input id="codebox" class="codebox" type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="16" placeholder="film title…" aria-label="Type a secret film code">
     <button id="codeclear" class="codeclear" type="button" aria-label="Clear the code box">×</button>
+  </div>
+  <div id="codebook" class="codebook" role="dialog" aria-modal="true" aria-label="The codebook" aria-hidden="true">
+    <div class="codebook-panel">
+      <button id="cbClose" class="cb-close" type="button" aria-label="Close">×</button>
+      <h3>The Codebook</h3>
+      <p class="cb-sub">type these anywhere</p>
+      <ul id="cbList"></ul>
+      <p class="cb-foot">…and tap her photo, or the Pepsu logo. 🐾</p>
+    </div>
   </div>
 
   <div class="gate" id="gate">
@@ -483,7 +510,8 @@ var $=function(s){return document.querySelector(s);};
 var stage=$("#stage"), layerA=$("#layerA"), layerB=$("#layerB"),
     gate=$("#gate"), beginBtn=$("#beginBtn"), muteBtn=$("#muteBtn"),
     progress=$("#progress"), hint=$("#hint"), replayBtn=$("#replayBtn"), fx=$("#fx"), music=$("#music"),
-    codebar=$("#codebar"), codeInput=$("#codebox"), codeClear=$("#codeclear"), backBtn=$("#backBtn");
+    codebar=$("#codebar"), codeInput=$("#codebox"), codeClear=$("#codeclear"), backBtn=$("#backBtn"),
+    codebook=$("#codebook"), cbList=$("#cbList");
 
 var mmReduce=window.matchMedia("(prefers-reduced-motion: reduce)");
 var Deck={ i:-1, started:false, animating:false, reduced:mmReduce.matches };
@@ -616,7 +644,7 @@ function begin(){
   if(Deck.started) return;
   Deck.started=true; Deck.i=0;
   gate.hidden=true; gate.style.display="none";
-  muteBtn.style.display="inline-flex"; codebar.classList.add("on");
+  muteBtn.style.display="inline-flex"; if(isTouch) codebar.classList.add("on");
   if(music && music.getAttribute("src") && music.getAttribute("src").indexOf("data:")===0){
     music.volume=0.7; music.muted=muted;
     var mp=music.play(); if(mp && mp.catch) mp.catch(function(){});
@@ -629,7 +657,10 @@ beginBtn.addEventListener("click", function(e){ e.stopPropagation(); begin(); })
 
 /* ---- input: pointer + click (double-fire guarded) ---- */
 var swallowUntil=0;
-function interactive(t){ return t.closest && t.closest("button, a, input, .codebar, .gate, .portrait, .logo-placard"); }
+// touch devices (no hover) keep the code box visible — it's their only keyboard trigger;
+// pointer devices reveal it once the user starts typing.
+var isTouch = !!(window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches);
+function interactive(t){ return t.closest && t.closest("button, a, input, .codebar, .codebook, .gate, .portrait, .logo-placard"); }
 stage.addEventListener("pointerup", function(e){
   if(e.pointerType==="mouse" && e.button!==0) return;
   var egg=e.target.closest && e.target.closest(".portrait, .logo-placard");
@@ -650,6 +681,7 @@ stage.addEventListener("click", function(e){
   if(Deck.started) next();
 });
 window.addEventListener("keydown", function(e){
+  if(codebook && codebook.classList.contains("on")){ if(e.key==="Escape") hideCodebook(); return; }
   var typing = document.activeElement===codeInput;
   if(!Deck.started){
     if(!typing && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); begin(); }
@@ -660,8 +692,9 @@ window.addEventListener("keydown", function(e){
     case "ArrowRight": case " ": case "Enter": e.preventDefault(); next(); break;
     case "ArrowLeft": case "Backspace": e.preventDefault(); prev(); break;
   }
-  // mirror typed letters into the visible code box, then check for a match
+  // mirror typed letters into the code box (revealing it on the first letter), then match
   if(e.key && e.key.length===1 && /[a-z0-9]/i.test(e.key)){
+    codebar.classList.add("on");
     codeInput.value=(codeInput.value+e.key).slice(-16);
     feedCode();
   }
@@ -794,7 +827,48 @@ function toggleMute(){
   if(music) music.muted=muted;
   if(master&&audioCtx) master.gain.setTargetAtTime(muted?0:CONFIG.audio.volume,audioCtx.currentTime,0.05);
 }
-muteBtn.addEventListener("click", function(e){ e.stopPropagation(); toggleMute(); });
+var muteClicks=0, muteClickT=0, muteSeqStart=false;
+muteBtn.addEventListener("click", function(e){
+  e.stopPropagation();
+  if(muteClicks===0) muteSeqStart=muted;
+  muteClicks++;
+  clearTimeout(muteClickT);
+  muteClickT=setTimeout(function(){ muteClicks=0; }, 1600);
+  if(muteClicks>=5){
+    muteClicks=0; clearTimeout(muteClickT);
+    if(muted!==muteSeqStart) toggleMute();   // leave the music as it was before the 5 taps
+    showCodebook();
+    return;
+  }
+  toggleMute();
+});
+/* ---- the codebook: every code, revealed by tapping ♪ five times ---- */
+var CODEBOOK=[
+  ["happyend","flips the car 🚗"],
+  ["bella","furious color 🎨"],
+  ["ant","shrinks to a speck 🐜"],
+  ["88","the DeLorean ⚡"],
+  ["future","your favorite line"],
+  ["chef","order up 🥪"],
+  ["leon","the plant 🪴"],
+  ["hamster","lone survivor 🐹"],
+  ["insiang","a bow to Brocka 🇵🇭"],
+  ["didi","brb, directing"],
+  ["east","East Anderson 🎞️"],
+  ["rose","you + Rosé 🍾"],
+  ["pepsuuuii","the exec producer 🐈"],
+  ["pepsi","she approves 🐾"],
+  ["hal","2001"],
+  ["a24","a seat for your reel"],
+  ["cut","that's a wrap"]
+];
+function buildCodebook(){
+  var h=""; for(var i=0;i<CODEBOOK.length;i++){ h+='<li><b>'+CODEBOOK[i][0]+'</b><span>'+CODEBOOK[i][1]+'</span></li>'; }
+  if(cbList) cbList.innerHTML=h;
+}
+function showCodebook(){ if(!codebook) return; if(cbList && !cbList.innerHTML) buildCodebook(); codebook.classList.add("on"); codebook.setAttribute("aria-hidden","false"); }
+function hideCodebook(){ if(!codebook) return; codebook.classList.remove("on"); codebook.setAttribute("aria-hidden","true"); }
+if(codebook) codebook.addEventListener("click", function(e){ e.stopPropagation(); if(e.target===codebook || (e.target.closest && e.target.closest("#cbClose"))) hideCodebook(); });
 
 /* =====================================================================
    CONFETTI — canvas, palette, reduced-motion safe
