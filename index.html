@@ -848,15 +848,21 @@ function toggleMute(){
   if(music) music.muted=muted;
   if(master&&audioCtx) master.gain.setTargetAtTime(muted?0:CONFIG.audio.volume,audioCtx.currentTime,0.05);
 }
-var muteCount=0, muteSeqT=0, mutePendT=0;
+var muteCount=0, muteSeqT=0, mutePendT=0, muteSeqStart=false;
 muteBtn.addEventListener("click", function(e){
   e.stopPropagation();
+  if(muteCount===0) muteSeqStart=muted;
   muteCount++;
   clearTimeout(muteSeqT); muteSeqT=setTimeout(function(){ muteCount=0; }, 1600);
   clearTimeout(mutePendT);
-  if(muteCount>=5){ muteCount=0; clearTimeout(muteSeqT); showCodebook(); return; }
-  // debounce the actual toggle so a rapid 5-tap (opening the codebook) doesn't stutter the audio
-  mutePendT=setTimeout(function(){ toggleMute(); muteCount=0; }, 230);
+  if(muteCount>=5){
+    muteCount=0; clearTimeout(muteSeqT);
+    if(muted!==muteSeqStart) toggleMute();   // leave the music as it was before the 5 taps
+    showCodebook(); return;
+  }
+  // debounce the toggle so rapid tapping doesn't stutter the audio; the tap COUNT
+  // only resets on the 1.6s window above — resetting it here broke human-speed 5-taps
+  mutePendT=setTimeout(function(){ toggleMute(); }, 230);
 });
 /* ---- the codebook: every code, revealed by tapping ♪ five times ---- */
 var CODEBOOK=[
